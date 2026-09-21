@@ -1,4 +1,4 @@
--- Tnh-VN MENU
+-- Tnh-VN MENU (Fixed)
 local Players=game:GetService("Players")
 local UIS=game:GetService("UserInputService")
 local RS=game:GetService("RunService")
@@ -231,7 +231,6 @@ end
 end)
 UIS.InputEnded:Connect(function() dr=false end)
 
--- Sidebar
 local Side=Instance.new("Frame")
 Side.Size=UDim2.new(0,170,1,-82);Side.Position=UDim2.new(0,10,0,72)
 Side.BackgroundColor3=Color3.fromRGB(21,27,30);Side.BorderSizePixel=0
@@ -288,7 +287,6 @@ XB.MouseButton1Click:Connect(function() OpenPg("FixLag") end)
 EB.MouseButton1Click:Connect(function() OpenPg("Steal") end)
 LB.MouseButton1Click:Connect(function() OpenPg("Language") end)
 
--- Key
 local KF=Instance.new("Frame")
 KF.Size=UDim2.new(0,380,0,250);KF.Position=UDim2.new(.5,-190,.5,-125)
 KF.BackgroundColor3=Color3.fromRGB(17,22,25);KF.BorderSizePixel=0
@@ -341,7 +339,6 @@ end
 KC.MouseButton1Click:Connect(VK)
 KB.FocusLost:Connect(function(e) if e then VK() end end)
 
--- Helpers
 local function PgHdr(p,t,d)
 local h=Lbl(p,t,29,UDim2.new(0,5,0,0))
 h.Size=UDim2.new(1,-10,0,42);h.Font=Enum.Font.GothamMedium
@@ -451,6 +448,9 @@ end
 return nil
 end
 
+-- ==================================================
+-- SCAN EGGS (FIXED - lọc part rác)
+-- ==================================================
 local function Scan(radius)
 local eggs,seen={},{}
 local c=LP.Character
@@ -469,7 +469,18 @@ end
 for _,o in ipairs(cands) do
 if o:IsA("BasePart") and not seen[o] then
 local n=o.Name:lower()
-if n:find("egg") or n:find("trứng") then
+-- Lọc bỏ part rác (machine, fuse, zone, decor...)
+local isEgg=(n:find("egg") or n:find("trứng"))
+and not n:find("machine")
+and not n:find("fuse")
+and not n:find("zone")
+and not n:find("shop")
+and not n:find("display")
+and not n:find("decor")
+and not n:find("sign")
+and not n:find("label")
+and not n:find("billboard")
+if isEgg then
 local a,ic=o.Parent,false
 for _=1,5 do
 if not a or a==WS then break end
@@ -477,6 +488,23 @@ if a:FindFirstChildOfClass("Humanoid") then ic=true;break end
 a=a.Parent
 end
 if not ic then
+-- Xác nhận là trứng thật (có prompt/click/billboard)
+local hasPrompt=o:FindFirstChildOfClass("ProximityPrompt")
+or (o.Parent and o.Parent:FindFirstChildOfClass("ProximityPrompt"))
+local hasClick=o:FindFirstChildOfClass("ClickDetector")
+or (o.Parent and o.Parent:FindFirstChildOfClass("ClickDetector"))
+local hasBB=false
+for _,dd in ipairs(o:GetDescendants()) do
+if dd:IsA("BillboardGui") and dd.Name~="TnhVN_EggESP" then hasBB=true;break end
+end
+if not hasBB and o.Parent then
+for _,dd in ipairs(o.Parent:GetDescendants()) do
+if dd:IsA("BillboardGui") and dd.Name~="TnhVN_EggESP" then hasBB=true;break end
+end
+end
+-- Chỉ nhận nếu có prompt/click/billboard HOẶC tên chứa "egg" + class Part + không phải Effect
+local isRealEgg=hasPrompt or hasClick or hasBB
+if isRealEgg then
 seen[o]=true
 local rn,gt=RGN(o)
 if not rn then rn=RAN(o) end
@@ -486,10 +514,11 @@ end
 end
 end
 end
+end
+end
 return eggs
 end
 
--- MAIN PAGE
 local MH=PgHdr(MainP,T("main"),T("mainD"))
 
 -- ESP BOX
@@ -573,7 +602,6 @@ end)
 
 local ET=Tog(MainP,T("esp"),T("espD"),function(v) S.ESP=v end)
 
--- ESP COLOR
 local CR=Row(MainP,58)
 local CL=Lbl(CR,T("color"),15,UDim2.new(0,18,0,16))
 local CO=Instance.new("TextButton")
@@ -615,7 +643,6 @@ end)
 end
 CO.MouseButton1Click:Connect(function() CLs.Visible=not CLs.Visible end)
 
--- AIMBOT
 local ABC
 local function ClosestTarget(bones)
 local cam=WS.CurrentCamera
@@ -670,7 +697,6 @@ if v then S.AimbotHead=false;StartAB()
 elseif not S.AimbotHead and ABC then ABC:Disconnect();ABC=nil end
 end)
 
--- POV SLIDER
 local PR=Row(MainP,95)
 local PT=Lbl(PR,T("pov"),15,UDim2.new(0,18,0,11))
 local PV=Lbl(PR,tostring(S.POV),13,UDim2.new(1,-80,0,11))
@@ -716,7 +742,9 @@ local cam=WS.CurrentCamera
 if cam then cam.FieldOfView=S.POV end
 end)
 
--- ANTI HIT
+-- ==================================================
+-- ANTI HIT (FIXED - giữ nguyên tốc độ)
+-- ==================================================
 local NST={
 Enum.HumanoidStateType.Ragdoll,
 Enum.HumanoidStateType.FallingDown,
@@ -748,8 +776,13 @@ if st==Enum.HumanoidStateType.Ragdoll or st==Enum.HumanoidStateType.FallingDown
 or st==Enum.HumanoidStateType.Physics or st==Enum.HumanoidStateType.PlatformStanding then
 pcall(function() hh:ChangeState(Enum.HumanoidStateType.GettingUp) end)
 end
+-- FIX: chỉ zero velocity khi bị knockback mạnh (không làm chậm đi bộ)
 local vel=rr.AssemblyLinearVelocity
+local hSpd=Vector3.new(vel.X,0,vel.Z).Magnitude
+local threshold=math.max(hh.WalkSpeed*2,50)
+if hSpd>threshold then
 rr.AssemblyLinearVelocity=Vector3.new(0,vel.Y,0)
+end
 rr.AssemblyAngularVelocity=Vector3.zero
 end)
 end
@@ -769,7 +802,6 @@ end)
 else S.AntiHit=false;StopAH() end
 end)
 
--- ANTIBAN
 local ABL
 local ABT=Tog(MainP,T("antiban"),T("antibanD"),function(v)
 S.Antiban=v
@@ -811,10 +843,12 @@ local l=ETags[part]:FindFirstChild("L")
 if l then l.Text=txt;l.TextColor3=col end
 return
 end
+if not part or not part.Parent then return end
 local bb=Instance.new("BillboardGui")
 bb.Name="TnhVN_EggESP";bb.Adornee=part
-bb.Size=UDim2.new(0,220,0,36);bb.StudsOffset=Vector3.new(0,3.5,0)
-bb.AlwaysOnTop=true;bb.MaxDistance=300;bb.LightInfluence=0;bb.Parent=part
+bb.Size=UDim2.new(0,240,0,36);bb.StudsOffset=Vector3.new(0,4,0)
+bb.AlwaysOnTop=true;bb.MaxDistance=5000;bb.LightInfluence=0;bb.ResetOnSpawn=false
+bb.Parent=part
 local l=Instance.new("TextLabel")
 l.Name="L";l.BackgroundTransparency=1;l.Size=UDim2.new(1,0,1,0)
 l.Font=Enum.Font.GothamBold;l.TextSize=15;l.TextStrokeTransparency=0
@@ -829,7 +863,7 @@ ETags={}
 end
 local function UEE()
 if not S.ESPEgg then CEr();return end
-local eggs=Scan(300)
+local eggs=Scan(1000)
 local st={}
 for _,e in ipairs(eggs) do
 st[e.part]=true;CEtag(e.part,e.real,e.info,e.gameText)
@@ -938,7 +972,6 @@ end
 end)
 UIS.InputEnded:Connect(function() FD=false end)
 
--- SPEED
 local SCH
 local SavedWS=nil
 local function GH() local c=LP.Character;return c and c:FindFirstChildOfClass("Humanoid") end
@@ -1080,11 +1113,19 @@ ELTx.TextColor3=Color3.fromRGB(140,150,155)
 ELTx.Size=UDim2.new(1,-36,1,-50);ELTx.TextWrapped=true
 ELTx.TextYAlignment=Enum.TextYAlignment.Top;ELTx.Font=Enum.Font.Code
 
+-- ==================================================
+-- TRY PICKUP EGG (đầy đủ fallback)
+-- ==================================================
 local function TP(eggPart)
 if not eggPart or not eggPart.Parent then return false end
 local prompt=eggPart:FindFirstChildOfClass("ProximityPrompt")
 if not prompt and eggPart.Parent then prompt=eggPart.Parent:FindFirstChildOfClass("ProximityPrompt") end
-if not prompt then for _,d in ipairs(eggPart:GetDescendants()) do if d:IsA("ProximityPrompt") then prompt=d;break end end end
+if not prompt then
+for _,d in ipairs(eggPart:GetDescendants()) do if d:IsA("ProximityPrompt") then prompt=d;break end end
+end
+if not prompt and eggPart.Parent then
+for _,d in ipairs(eggPart.Parent:GetDescendants()) do if d:IsA("ProximityPrompt") then prompt=d;break end end
+end
 if prompt then
 pcall(function()
 if fireproximityprompt then fireproximityprompt(prompt,0)
@@ -1133,7 +1174,6 @@ end)
 
 local PTog=Tog(StealP,T("prio"),T("prioD"),function(v) S.PrioritySecret=v end)
 
--- BASE FINDER
 local CBase=nil
 local function FB()
 if CBase then return CBase end
@@ -1162,7 +1202,7 @@ return Vector3.new(0,50,0)
 end
 
 local function ICE()
-for _,a in ipairs({"HasEgg","CarryingEgg","HasPet","CarryEgg","Holding","IsCarrying","Egg","EggName","Carrying"}) do
+for _,a in ipairs({"HasEgg","CarryingEgg","HasPet","CarryEgg","Holding","IsCarrying","EggName","Carrying"}) do
 local ok,v=pcall(function() return LP:GetAttribute(a) end)
 if ok and v~=nil and v~=false and v~="" then return true end
 end
@@ -1170,13 +1210,18 @@ local c=LP.Character
 if c then
 for _,o in ipairs(c:GetChildren()) do
 local n=o.Name:lower()
-if (n:find("egg") or n:find("carry") or n:find("hold")) and not o:IsA("Humanoid") then return true end
+if (n=="egg" or n:match("^egg[%s%d]") or n:match("carry") or n:match("hold")) 
+and not o:IsA("Humanoid") and not o:IsA("Accessory") 
+and not o:IsA("Tool") and not o:IsA("Folder") then
+return true
+end
 end
 end
 local bp=LP:FindFirstChildOfClass("Backpack")
 if bp then
 for _,o in ipairs(bp:GetChildren()) do
-if o.Name:lower():find("egg") then return true end
+local n=o.Name:lower()
+if n=="egg" or n:match("^egg[%s%d]") then return true end
 end
 end
 return false
@@ -1293,15 +1338,27 @@ local d=(pos-r.Position).Magnitude
 local inf=t.info or {}
 StatL.Text=T("stat")..": → "..(t.real or t.name).." ("..(inf.income or "?")..") "..math.floor(d).."m"
 StatL.TextColor3=Color3.fromRGB(0,200,255)
-if d<=10 then
+-- FIX: tầm 20m + dùng TP() có fallback đầy đủ
+if d<=20 then
 if tick()-LPA>0.15 then
 LPA=tick()
-local pr=t.part:FindFirstChildOfClass("ProximityPrompt")
-if not pr and t.part.Parent then pr=t.part.Parent:FindFirstChildOfClass("ProximityPrompt") end
-if not pr then for _,dd in ipairs(t.part:GetDescendants()) do if dd:IsA("ProximityPrompt") then pr=dd;break end end end
-if pr then FP(pr) end
+local ok=TP(t.part)
+if not ok and firetouchinterest then
+local cc=LP.Character
+if cc then
+for _,pName in ipairs({"HumanoidRootPart","Head","UpperTorso","Torso","LeftHand","RightHand"}) do
+local bp=cc:FindFirstChild(pName)
+if bp then
+pcall(function()
+firetouchinterest(bp,t.part,0)
+task.wait(0.03)
+firetouchinterest(bp,t.part,1)
+end)
 end
-r.AssemblyLinearVelocity=Vector3.zero
+end
+end
+end
+end
 else
 local dir=pos-r.Position
 local step=math.min(dir.Magnitude-5,50)
@@ -1420,9 +1477,7 @@ DTs={}
 end
 end)
 
--- ==================================================
--- SCRIPT CARD
--- ==================================================
+-- ScriptCard
 local function ScriptCard(parent,title,desc,url)
 local r=Row(parent,90)
 local t=Lbl(r,title,16,UDim2.new(0,18,0,10))
