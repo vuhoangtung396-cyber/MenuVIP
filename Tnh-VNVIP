@@ -1,0 +1,442 @@
+local Players=game:GetService("Players")
+local UIS=game:GetService("UserInputService")
+local RunService=game:GetService("RunService")
+local Lighting=game:GetService("Lighting")
+local LP=Players.LocalPlayer
+
+local gui=Instance.new("ScreenGui")
+gui.Name="TnhVN"
+gui.ResetOnSpawn=false
+gui.Parent=LP:WaitForChild("PlayerGui")
+
+local function C(o,r)
+	local x=Instance.new("UICorner")
+	x.CornerRadius=UDim.new(0,r)
+	x.Parent=o
+end
+
+local function S(o)
+	local x=Instance.new("UIStroke")
+	x.Thickness=1.5
+	x.Transparency=.35
+	x.Parent=o
+end
+
+local T=Instance.new("TextButton")
+T.Size=UDim2.fromOffset(58,58)
+T.Position=UDim2.new(1,-75,.5,-29)
+T.BackgroundColor3=Color3.fromRGB(25,30,35)
+T.Text="T"
+T.TextColor3=Color3.new(1,1,1)
+T.TextSize=28
+T.Font=Enum.Font.GothamBold
+T.Parent=gui
+C(T,30)
+S(T)
+
+local drag=false
+local ds,sp
+
+T.InputBegan:Connect(function(i)
+	if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+		drag=true
+		ds=i.Position
+		sp=T.Position
+	end
+end)
+
+T.InputEnded:Connect(function(i)
+	if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+		drag=false
+	end
+end)
+
+UIS.InputChanged:Connect(function(i)
+	if not drag then return end
+	if i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch then
+		local d=i.Position-ds
+		T.Position=UDim2.new(sp.X.Scale,sp.X.Offset+d.X,sp.Y.Scale,sp.Y.Offset+d.Y)
+	end
+end)
+
+local menu=Instance.new("Frame")
+menu.Size=UDim2.fromOffset(680,450)
+menu.Position=UDim2.new(.5,-340,.5,-225)
+menu.BackgroundColor3=Color3.fromRGB(17,22,26)
+menu.Visible=false
+menu.Parent=gui
+C(menu,16)
+S(menu)
+
+local title=Instance.new("TextLabel")
+title.Size=UDim2.new(1,0,0,70)
+title.BackgroundTransparency=1
+title.Text="Tnh-VN"
+title.TextColor3=Color3.new(1,1,1)
+title.TextSize=31
+title.Font=Enum.Font.GothamBold
+title.Parent=menu
+
+local side=Instance.new("Frame")
+side.Size=UDim2.fromOffset(180,365)
+side.Position=UDim2.fromOffset(10,70)
+side.BackgroundTransparency=1
+side.Parent=menu
+
+local content=Instance.new("Frame")
+content.Size=UDim2.new(1,-205,1,-85)
+content.Position=UDim2.fromOffset(195,75)
+content.BackgroundTransparency=1
+content.Parent=menu
+
+local pages={}
+local tabs={}
+
+local function page()
+	local p=Instance.new("Frame")
+	p.Size=UDim2.fromScale(1,1)
+	p.BackgroundTransparency=1
+	p.Visible=false
+	p.Parent=content
+	table.insert(pages,p)
+	return p
+end
+
+local function tab(txt,y,p)
+	local b=Instance.new("TextButton")
+	b.Size=UDim2.new(1,-10,0,58)
+	b.Position=UDim2.fromOffset(5,y)
+	b.BackgroundColor3=Color3.fromRGB(34,40,44)
+	b.Text=txt
+	b.TextColor3=Color3.new(1,1,1)
+	b.TextSize=17
+	b.Font=Enum.Font.GothamMedium
+	b.Parent=side
+	C(b,10)
+	table.insert(tabs,b)
+
+	b.MouseButton1Click:Connect(function()
+		for _,v in ipairs(pages) do v.Visible=false end
+		for _,v in ipairs(tabs) do v.BackgroundColor3=Color3.fromRGB(34,40,44) end
+		p.Visible=true
+		b.BackgroundColor3=Color3.fromRGB(0,160,225)
+	end)
+	return b
+end
+
+local function button(p,txt,y)
+	local b=Instance.new("TextButton")
+	b.Size=UDim2.new(1,-10,0,70)
+	b.Position=UDim2.fromOffset(5,y)
+	b.BackgroundColor3=Color3.fromRGB(27,34,38)
+	b.Text=txt
+	b.TextColor3=Color3.new(1,1,1)
+	b.TextSize=18
+	b.TextXAlignment=Enum.TextXAlignment.Left
+	b.Font=Enum.Font.GothamMedium
+	b.Parent=p
+	C(b,12)
+	S(b)
+	return b
+end
+
+local function text(p,txt,y)
+	local l=Instance.new("TextLabel")
+	l.Size=UDim2.new(1,-10,0,42)
+	l.Position=UDim2.fromOffset(5,y)
+	l.BackgroundTransparency=1
+	l.Text=txt
+	l.TextColor3=Color3.new(1,1,1)
+	l.TextSize=24
+	l.TextXAlignment=Enum.TextXAlignment.Left
+	l.Font=Enum.Font.GothamBold
+	l.Parent=p
+	return l
+end
+
+local espPage=page()
+local rayPage=page()
+local flyPage=page()
+local lagPage=page()
+local langPage=page()
+
+local espTab=tab("ESP",0,espPage)
+local rayTab=tab("Tia",65,rayPage)
+local flyTab=tab("Fly",130,flyPage)
+local lagTab=tab("FixLag",195,lagPage)
+local langTab=tab("Ngôn ngữ",260,langPage)
+
+text(espPage,"ESP",5)
+local espBtn=button(espPage,"Box người chơi : OFF",55)
+
+text(rayPage,"Tia người chơi",5)
+local rayBtn=button(rayPage,"Vẽ tia : OFF",55)
+
+text(flyPage,"Fly",5)
+local flyBtn=button(flyPage,"Bật Fly : OFF",55)
+
+local flyBox=Instance.new("TextBox")
+flyBox.Size=UDim2.new(1,-10,0,50)
+flyBox.Position=UDim2.fromOffset(5,140)
+flyBox.BackgroundColor3=Color3.fromRGB(27,34,38)
+flyBox.Text="50"
+flyBox.TextColor3=Color3.new(1,1,1)
+flyBox.TextSize=18
+flyBox.Font=Enum.Font.Gotham
+flyBox.ClearTextOnFocus=false
+flyBox.Parent=flyPage
+C(flyBox,10)
+
+local flySlider=Instance.new("TextButton")
+flySlider.Size=UDim2.new(1,-10,0,14)
+flySlider.Position=UDim2.fromOffset(5,205)
+flySlider.BackgroundColor3=Color3.fromRGB(0,160,225)
+flySlider.Text=""
+flySlider.Parent=flyPage
+C(flySlider,7)
+
+local flySpeed=50
+
+flyBox.FocusLost:Connect(function()
+	flySpeed=math.clamp(tonumber(flyBox.Text) or 50,1,450)
+	flyBox.Text=tostring(flySpeed)
+end)
+
+flySlider.MouseButton1Down:Connect(function()
+	local move
+	move=UIS.InputChanged:Connect(function(i)
+		if i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch then
+			local x=math.clamp(i.Position.X-flySlider.AbsolutePosition.X,0,flySlider.AbsoluteSize.X)
+			flySpeed=math.floor(1+(x/flySlider.AbsoluteSize.X)*449)
+			flyBox.Text=tostring(flySpeed)
+		end
+	end)
+	UIS.InputEnded:Wait()
+	move:Disconnect()
+end)
+
+text(lagPage,"FixLag",5)
+local lagBtn=button(lagPage,"Tối ưu máy : OFF",55)
+
+text(langPage,"Ngôn ngữ",5)
+
+local languageData={
+	vi={
+		esp="ESP",ray="Tia",fly="Fly",lag="FixLag",lang="Ngôn ngữ",
+		espPage="ESP",box="Box người chơi : ",rayPage="Tia người chơi",
+		rayBtn="Vẽ tia : ",flyPage="Fly",flyBtn="Bật Fly : ",
+		lagPage="FixLag",lagBtn="Tối ưu máy : ",langPage="Ngôn ngữ",
+		speed="Tốc độ Fly"
+	},
+	en={
+		esp="ESP",ray="Player Lines",fly="Fly",lag="FixLag",lang="Language",
+		espPage="ESP",box="Player Box : ",rayPage="Player Lines",
+		rayBtn="Draw Lines : ",flyPage="Fly",flyBtn="Enable Fly : ",
+		lagPage="FixLag",lagBtn="Optimization : ",langPage="Language",
+		speed="Fly Speed"
+	},
+	th={
+		esp="ESP",ray="เส้นผู้เล่น",fly="บิน",lag="ลดแลค",lang="ภาษา",
+		espPage="ESP",box="กรอบผู้เล่น : ",rayPage="เส้นผู้เล่น",
+		rayBtn="แสดงเส้น : ",flyPage="บิน",flyBtn="เปิดบิน : ",
+		lagPage="ลดแลค",lagBtn="เพิ่มประสิทธิภาพ : ",langPage="ภาษา",
+		speed="ความเร็วบิน"
+	},
+	zh={
+		esp="ESP",ray="玩家射线",fly="飞行",lag="优化",lang="语言",
+		espPage="ESP",box="玩家方框 : ",rayPage="玩家射线",
+		rayBtn="显示射线 : ",flyPage="飞行",flyBtn="开启飞行 : ",
+		lagPage="优化",lagBtn="性能优化 : ",langPage="语言",
+		speed="飞行速度"
+	},
+	ko={
+		esp="ESP",ray="플레이어 선",fly="비행",lag="최적화",lang="언어",
+		espPage="ESP",box="플레이어 박스 : ",rayPage="플레이어 선",
+		rayBtn="선 표시 : ",flyPage="비행",flyBtn="비행 활성화 : ",
+		lagPage="최적화",lagBtn="최적화 : ",langPage="언어",
+		speed="비행 속도"
+	}
+}
+
+local langButtons={
+	{"🇻🇳 Tiếng Việt","vi"},
+	{"🇬🇧 English","en"},
+	{"🇹🇭 ภาษาไทย","th"},
+	{"🇨🇳 中文","zh"},
+	{"🇰🇷 한국어","ko"}
+}
+
+local function setLanguage(k)
+	local d=languageData[k]
+
+	espTab.Text=d.esp
+	rayTab.Text=d.ray
+	flyTab.Text=d.fly
+	lagTab.Text=d.lag
+	langTab.Text=d.lang
+
+	espBtn.Text=d.box..(espOn and "ON" or "OFF")
+	rayBtn.Text=d.rayBtn..(rayOn and "ON" or "OFF")
+	flyBtn.Text=d.flyBtn..(flyOn and "ON" or "OFF")
+	lagBtn.Text=d.lagBtn..(lagOn and "ON" or "OFF")
+
+	title.Text="Tnh-VN"
+end
+
+local ly=55
+for _,v in ipairs(langButtons) do
+	local b=button(langPage,v[1],ly)
+	ly+=72
+	b.MouseButton1Click:Connect(function()
+		setLanguage(v[2])
+	end)
+end
+
+local espOn=false
+local rayOn=false
+local flyOn=false
+local lagOn=false
+local flyVelocity
+
+local function updateESP()
+	for _,p in ipairs(Players:GetPlayers()) do
+		if p~=LP and p.Character then
+			local old=p.Character:FindFirstChild("TnhVN_ESP")
+			if old then old:Destroy() end
+
+			if espOn then
+				local h=Instance.new("Highlight")
+				h.Name="TnhVN_ESP"
+				h.FillColor=Color3.fromRGB(0,170,255)
+				h.OutlineColor=Color3.fromRGB(0,200,255)
+				h.FillTransparency=.72
+				h.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop
+				h.Parent=p.Character
+			end
+		end
+	end
+end
+
+espBtn.MouseButton1Click:Connect(function()
+	espOn=not espOn
+	espBtn.Text="Box người chơi : "..(espOn and "ON" or "OFF")
+	updateESP()
+end)
+
+local lines={}
+
+local function clearLines()
+	for _,v in pairs(lines) do
+		if v then v:Remove() end
+	end
+	lines={}
+end
+
+local function updateLines()
+	clearLines()
+	if not rayOn then return end
+
+	for _,p in ipairs(Players:GetPlayers()) do
+		if p~=LP and p.Character then
+			local root=p.Character:FindFirstChild("HumanoidRootPart")
+			if root then
+				local line=Drawing and Drawing.new("Line")
+				if line then
+					line.Color=Color3.fromRGB(255,0,0)
+					line.Thickness=2
+					line.Transparency=1
+					lines[p]=line
+				end
+			end
+		end
+	end
+end
+
+rayBtn.MouseButton1Click:Connect(function()
+	rayOn=not rayOn
+	rayBtn.Text="Vẽ tia : "..(rayOn and "ON" or "OFF")
+	updateLines()
+end)
+
+flyBtn.MouseButton1Click:Connect(function()
+	flyOn=not flyOn
+	flyBtn.Text="Bật Fly : "..(flyOn and "ON" or "OFF")
+
+	local root=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+
+	if flyOn and root then
+		flyVelocity=Instance.new("BodyVelocity")
+		flyVelocity.MaxForce=Vector3.new(math.huge,math.huge,math.huge)
+		flyVelocity.Velocity=Vector3.zero
+		flyVelocity.Parent=root
+	else
+		if flyVelocity then
+			flyVelocity:Destroy()
+			flyVelocity=nil
+		end
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	if flyOn and flyVelocity then
+		local h=LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+		if h then
+			flyVelocity.Velocity=h.MoveDirection*flySpeed
+		end
+	end
+
+	if rayOn and Drawing then
+		for p,l in pairs(lines) do
+			local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
+			local my=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
+
+			if root and my then
+				local a,on1=workspace.CurrentCamera:WorldToViewportPoint(my.Position)
+				local b,on2=workspace.CurrentCamera:WorldToViewportPoint(root.Position)
+				l.Visible=on1 and on2
+				l.From=Vector2.new(a.X,a.Y)
+				l.To=Vector2.new(b.X,b.Y)
+			else
+				l.Visible=false
+			end
+		end
+	end
+end)
+
+lagBtn.MouseButton1Click:Connect(function()
+	lagOn=not lagOn
+	lagBtn.Text="Tối ưu máy : "..(lagOn and "ON" or "OFF")
+
+	if lagOn then
+		Lighting.GlobalShadows=false
+		Lighting.FogEnd=100000
+
+		for _,v in ipairs(workspace:GetDescendants()) do
+			if v:IsA("Clouds") then
+				v.Enabled=false
+			elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") then
+				v.Enabled=false
+			end
+		end
+	end
+end)
+
+Players.PlayerAdded:Connect(function(p)
+	p.CharacterAdded:Connect(function()
+		task.wait(.5)
+		updateESP()
+		if rayOn then updateLines() end
+	end)
+end)
+
+T.MouseButton1Click:Connect(function()
+	menu.Visible=not menu.Visible
+end)
+
+espPage.Visible=true
+espTab.BackgroundColor3=Color3.fromRGB(0,160,225)
+
+if UIS.TouchEnabled then
+	menu.Size=UDim2.new(.94,0,.82,0)
+	menu.Position=UDim2.new(.03,0,.09,0)
+end
