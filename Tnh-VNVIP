@@ -2,6 +2,7 @@ local Players=game:GetService("Players")
 local UIS=game:GetService("UserInputService")
 local RunService=game:GetService("RunService")
 local Lighting=game:GetService("Lighting")
+
 local LP=Players.LocalPlayer
 
 local gui=Instance.new("ScreenGui")
@@ -9,17 +10,17 @@ gui.Name="TnhVN"
 gui.ResetOnSpawn=false
 gui.Parent=LP:WaitForChild("PlayerGui")
 
-local function C(o,r)
-	local x=Instance.new("UICorner")
-	x.CornerRadius=UDim.new(0,r)
-	x.Parent=o
+local function corner(o,r)
+	local c=Instance.new("UICorner")
+	c.CornerRadius=UDim.new(0,r)
+	c.Parent=o
 end
 
-local function S(o)
-	local x=Instance.new("UIStroke")
-	x.Thickness=1.5
-	x.Transparency=.35
-	x.Parent=o
+local function stroke(o)
+	local s=Instance.new("UIStroke")
+	s.Thickness=1.5
+	s.Transparency=.35
+	s.Parent=o
 end
 
 local T=Instance.new("TextButton")
@@ -31,31 +32,38 @@ T.TextColor3=Color3.new(1,1,1)
 T.TextSize=28
 T.Font=Enum.Font.GothamBold
 T.Parent=gui
-C(T,30)
-S(T)
+corner(T,30)
+stroke(T)
 
-local drag=false
-local ds,sp
+local dragging=false
+local dragStart
+local startPos
 
 T.InputBegan:Connect(function(i)
-	if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-		drag=true
-		ds=i.Position
-		sp=T.Position
+	if i.UserInputType==Enum.UserInputType.MouseButton1
+	or i.UserInputType==Enum.UserInputType.Touch then
+		dragging=true
+		dragStart=i.Position
+		startPos=T.Position
 	end
 end)
 
 T.InputEnded:Connect(function(i)
-	if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
-		drag=false
+	if i.UserInputType==Enum.UserInputType.MouseButton1
+	or i.UserInputType==Enum.UserInputType.Touch then
+		dragging=false
 	end
 end)
 
 UIS.InputChanged:Connect(function(i)
-	if not drag then return end
-	if i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch then
-		local d=i.Position-ds
-		T.Position=UDim2.new(sp.X.Scale,sp.X.Offset+d.X,sp.Y.Scale,sp.Y.Offset+d.Y)
+	if not dragging then return end
+	if i.UserInputType==Enum.UserInputType.MouseMovement
+	or i.UserInputType==Enum.UserInputType.Touch then
+		local d=i.Position-dragStart
+		T.Position=UDim2.new(
+			startPos.X.Scale,startPos.X.Offset+d.X,
+			startPos.Y.Scale,startPos.Y.Offset+d.Y
+		)
 	end
 end)
 
@@ -65,8 +73,8 @@ menu.Position=UDim2.new(.5,-340,.5,-225)
 menu.BackgroundColor3=Color3.fromRGB(17,22,26)
 menu.Visible=false
 menu.Parent=gui
-C(menu,16)
-S(menu)
+corner(menu,16)
+stroke(menu)
 
 local title=Instance.new("TextLabel")
 title.Size=UDim2.new(1,0,0,70)
@@ -112,15 +120,21 @@ local function tab(txt,y,p)
 	b.TextSize=17
 	b.Font=Enum.Font.GothamMedium
 	b.Parent=side
-	C(b,10)
+	corner(b,10)
+
 	table.insert(tabs,b)
 
 	b.MouseButton1Click:Connect(function()
-		for _,v in ipairs(pages) do v.Visible=false end
-		for _,v in ipairs(tabs) do v.BackgroundColor3=Color3.fromRGB(34,40,44) end
+		for _,v in ipairs(pages) do
+			v.Visible=false
+		end
+		for _,v in ipairs(tabs) do
+			v.BackgroundColor3=Color3.fromRGB(34,40,44)
+		end
 		p.Visible=true
 		b.BackgroundColor3=Color3.fromRGB(0,160,225)
 	end)
+
 	return b
 end
 
@@ -135,12 +149,12 @@ local function button(p,txt,y)
 	b.TextXAlignment=Enum.TextXAlignment.Left
 	b.Font=Enum.Font.GothamMedium
 	b.Parent=p
-	C(b,12)
-	S(b)
+	corner(b,12)
+	stroke(b)
 	return b
 end
 
-local function text(p,txt,y)
+local function label(p,txt,y)
 	local l=Instance.new("TextLabel")
 	l.Size=UDim2.new(1,-10,0,42)
 	l.Position=UDim2.fromOffset(5,y)
@@ -155,148 +169,19 @@ local function text(p,txt,y)
 end
 
 local espPage=page()
-local rayPage=page()
 local flyPage=page()
 local lagPage=page()
 local langPage=page()
 
 local espTab=tab("ESP",0,espPage)
-local rayTab=tab("Tia",65,rayPage)
-local flyTab=tab("Fly",130,flyPage)
-local lagTab=tab("FixLag",195,lagPage)
-local langTab=tab("Ngôn ngữ",260,langPage)
+local flyTab=tab("Fly",65,flyPage)
+local lagTab=tab("FixLag",130,lagPage)
+local langTab=tab("Ngôn ngữ",195,langPage)
 
-text(espPage,"ESP",5)
+label(espPage,"ESP",5)
 local espBtn=button(espPage,"Box người chơi : OFF",55)
 
-text(rayPage,"Tia người chơi",5)
-local rayBtn=button(rayPage,"Vẽ tia : OFF",55)
-
-text(flyPage,"Fly",5)
-local flyBtn=button(flyPage,"Bật Fly : OFF",55)
-
-local flyBox=Instance.new("TextBox")
-flyBox.Size=UDim2.new(1,-10,0,50)
-flyBox.Position=UDim2.fromOffset(5,140)
-flyBox.BackgroundColor3=Color3.fromRGB(27,34,38)
-flyBox.Text="50"
-flyBox.TextColor3=Color3.new(1,1,1)
-flyBox.TextSize=18
-flyBox.Font=Enum.Font.Gotham
-flyBox.ClearTextOnFocus=false
-flyBox.Parent=flyPage
-C(flyBox,10)
-
-local flySlider=Instance.new("TextButton")
-flySlider.Size=UDim2.new(1,-10,0,14)
-flySlider.Position=UDim2.fromOffset(5,205)
-flySlider.BackgroundColor3=Color3.fromRGB(0,160,225)
-flySlider.Text=""
-flySlider.Parent=flyPage
-C(flySlider,7)
-
-local flySpeed=50
-
-flyBox.FocusLost:Connect(function()
-	flySpeed=math.clamp(tonumber(flyBox.Text) or 50,1,450)
-	flyBox.Text=tostring(flySpeed)
-end)
-
-flySlider.MouseButton1Down:Connect(function()
-	local move
-	move=UIS.InputChanged:Connect(function(i)
-		if i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch then
-			local x=math.clamp(i.Position.X-flySlider.AbsolutePosition.X,0,flySlider.AbsoluteSize.X)
-			flySpeed=math.floor(1+(x/flySlider.AbsoluteSize.X)*449)
-			flyBox.Text=tostring(flySpeed)
-		end
-	end)
-	UIS.InputEnded:Wait()
-	move:Disconnect()
-end)
-
-text(lagPage,"FixLag",5)
-local lagBtn=button(lagPage,"Tối ưu máy : OFF",55)
-
-text(langPage,"Ngôn ngữ",5)
-
-local languageData={
-	vi={
-		esp="ESP",ray="Tia",fly="Fly",lag="FixLag",lang="Ngôn ngữ",
-		espPage="ESP",box="Box người chơi : ",rayPage="Tia người chơi",
-		rayBtn="Vẽ tia : ",flyPage="Fly",flyBtn="Bật Fly : ",
-		lagPage="FixLag",lagBtn="Tối ưu máy : ",langPage="Ngôn ngữ",
-		speed="Tốc độ Fly"
-	},
-	en={
-		esp="ESP",ray="Player Lines",fly="Fly",lag="FixLag",lang="Language",
-		espPage="ESP",box="Player Box : ",rayPage="Player Lines",
-		rayBtn="Draw Lines : ",flyPage="Fly",flyBtn="Enable Fly : ",
-		lagPage="FixLag",lagBtn="Optimization : ",langPage="Language",
-		speed="Fly Speed"
-	},
-	th={
-		esp="ESP",ray="เส้นผู้เล่น",fly="บิน",lag="ลดแลค",lang="ภาษา",
-		espPage="ESP",box="กรอบผู้เล่น : ",rayPage="เส้นผู้เล่น",
-		rayBtn="แสดงเส้น : ",flyPage="บิน",flyBtn="เปิดบิน : ",
-		lagPage="ลดแลค",lagBtn="เพิ่มประสิทธิภาพ : ",langPage="ภาษา",
-		speed="ความเร็วบิน"
-	},
-	zh={
-		esp="ESP",ray="玩家射线",fly="飞行",lag="优化",lang="语言",
-		espPage="ESP",box="玩家方框 : ",rayPage="玩家射线",
-		rayBtn="显示射线 : ",flyPage="飞行",flyBtn="开启飞行 : ",
-		lagPage="优化",lagBtn="性能优化 : ",langPage="语言",
-		speed="飞行速度"
-	},
-	ko={
-		esp="ESP",ray="플레이어 선",fly="비행",lag="최적화",lang="언어",
-		espPage="ESP",box="플레이어 박스 : ",rayPage="플레이어 선",
-		rayBtn="선 표시 : ",flyPage="비행",flyBtn="비행 활성화 : ",
-		lagPage="최적화",lagBtn="최적화 : ",langPage="언어",
-		speed="비행 속도"
-	}
-}
-
-local langButtons={
-	{"🇻🇳 Tiếng Việt","vi"},
-	{"🇬🇧 English","en"},
-	{"🇹🇭 ภาษาไทย","th"},
-	{"🇨🇳 中文","zh"},
-	{"🇰🇷 한국어","ko"}
-}
-
-local function setLanguage(k)
-	local d=languageData[k]
-
-	espTab.Text=d.esp
-	rayTab.Text=d.ray
-	flyTab.Text=d.fly
-	lagTab.Text=d.lag
-	langTab.Text=d.lang
-
-	espBtn.Text=d.box..(espOn and "ON" or "OFF")
-	rayBtn.Text=d.rayBtn..(rayOn and "ON" or "OFF")
-	flyBtn.Text=d.flyBtn..(flyOn and "ON" or "OFF")
-	lagBtn.Text=d.lagBtn..(lagOn and "ON" or "OFF")
-
-	title.Text="Tnh-VN"
-end
-
-local ly=55
-for _,v in ipairs(langButtons) do
-	local b=button(langPage,v[1],ly)
-	ly+=72
-	b.MouseButton1Click:Connect(function()
-		setLanguage(v[2])
-	end)
-end
-
 local espOn=false
-local rayOn=false
-local flyOn=false
-local lagOn=false
-local flyVelocity
 
 local function updateESP()
 	for _,p in ipairs(Players:GetPlayers()) do
@@ -323,39 +208,63 @@ espBtn.MouseButton1Click:Connect(function()
 	updateESP()
 end)
 
-local lines={}
+label(flyPage,"Fly",5)
 
-local function clearLines()
-	for _,v in pairs(lines) do
-		if v then v:Remove() end
-	end
-	lines={}
-end
+local flyBtn=button(flyPage,"Bật Fly : OFF",55)
 
-local function updateLines()
-	clearLines()
-	if not rayOn then return end
+local flyBox=Instance.new("TextBox")
+flyBox.Size=UDim2.new(1,-10,0,50)
+flyBox.Position=UDim2.fromOffset(5,140)
+flyBox.BackgroundColor3=Color3.fromRGB(27,34,38)
+flyBox.Text="50"
+flyBox.TextColor3=Color3.new(1,1,1)
+flyBox.TextSize=18
+flyBox.Font=Enum.Font.Gotham
+flyBox.ClearTextOnFocus=false
+flyBox.Parent=flyPage
+corner(flyBox,10)
 
-	for _,p in ipairs(Players:GetPlayers()) do
-		if p~=LP and p.Character then
-			local root=p.Character:FindFirstChild("HumanoidRootPart")
-			if root then
-				local line=Drawing and Drawing.new("Line")
-				if line then
-					line.Color=Color3.fromRGB(255,0,0)
-					line.Thickness=2
-					line.Transparency=1
-					lines[p]=line
-				end
-			end
+local flySlider=Instance.new("TextButton")
+flySlider.Size=UDim2.new(1,-10,0,14)
+flySlider.Position=UDim2.fromOffset(5,205)
+flySlider.BackgroundColor3=Color3.fromRGB(0,160,225)
+flySlider.Text=""
+flySlider.Parent=flyPage
+corner(flySlider,7)
+
+local flyOn=false
+local flySpeed=50
+local flyVelocity
+
+flyBox.FocusLost:Connect(function()
+	flySpeed=math.clamp(tonumber(flyBox.Text) or 50,1,450)
+	flyBox.Text=tostring(flySpeed)
+end)
+
+flySlider.MouseButton1Down:Connect(function()
+	local con
+	con=UIS.InputChanged:Connect(function(i)
+		if i.UserInputType==Enum.UserInputType.MouseMovement
+		or i.UserInputType==Enum.UserInputType.Touch then
+			local x=math.clamp(
+				i.Position.X-flySlider.AbsolutePosition.X,
+				0,
+				flySlider.AbsoluteSize.X
+			)
+
+			flySpeed=math.floor(1+(x/flySlider.AbsoluteSize.X)*449)
+			flyBox.Text=tostring(flySpeed)
 		end
-	end
-end
+	end)
 
-rayBtn.MouseButton1Click:Connect(function()
-	rayOn=not rayOn
-	rayBtn.Text="Vẽ tia : "..(rayOn and "ON" or "OFF")
-	updateLines()
+	local ended
+	ended=UIS.InputEnded:Connect(function(i)
+		if i.UserInputType==Enum.UserInputType.MouseButton1
+		or i.UserInputType==Enum.UserInputType.Touch then
+			con:Disconnect()
+			ended:Disconnect()
+		end
+	end)
 end)
 
 flyBtn.MouseButton1Click:Connect(function()
@@ -369,39 +278,25 @@ flyBtn.MouseButton1Click:Connect(function()
 		flyVelocity.MaxForce=Vector3.new(math.huge,math.huge,math.huge)
 		flyVelocity.Velocity=Vector3.zero
 		flyVelocity.Parent=root
-	else
-		if flyVelocity then
-			flyVelocity:Destroy()
-			flyVelocity=nil
-		end
+	elseif flyVelocity then
+		flyVelocity:Destroy()
+		flyVelocity=nil
 	end
 end)
 
 RunService.RenderStepped:Connect(function()
 	if flyOn and flyVelocity then
-		local h=LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
-		if h then
-			flyVelocity.Velocity=h.MoveDirection*flySpeed
-		end
-	end
-
-	if rayOn and Drawing then
-		for p,l in pairs(lines) do
-			local root=p.Character and p.Character:FindFirstChild("HumanoidRootPart")
-			local my=LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
-
-			if root and my then
-				local a,on1=workspace.CurrentCamera:WorldToViewportPoint(my.Position)
-				local b,on2=workspace.CurrentCamera:WorldToViewportPoint(root.Position)
-				l.Visible=on1 and on2
-				l.From=Vector2.new(a.X,a.Y)
-				l.To=Vector2.new(b.X,b.Y)
-			else
-				l.Visible=false
-			end
+		local hum=LP.Character and LP.Character:FindFirstChildOfClass("Humanoid")
+		if hum then
+			flyVelocity.Velocity=hum.MoveDirection*flySpeed
 		end
 	end
 end)
+
+label(lagPage,"FixLag",5)
+
+local lagBtn=button(lagPage,"Tối ưu máy : OFF",55)
+local lagOn=false
 
 lagBtn.MouseButton1Click:Connect(function()
 	lagOn=not lagOn
@@ -414,18 +309,62 @@ lagBtn.MouseButton1Click:Connect(function()
 		for _,v in ipairs(workspace:GetDescendants()) do
 			if v:IsA("Clouds") then
 				v.Enabled=false
-			elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") then
+			elseif v:IsA("ParticleEmitter")
+			or v:IsA("Trail")
+			or v:IsA("Smoke")
+			or v:IsA("Fire") then
 				v.Enabled=false
 			end
 		end
+	else
+		Lighting.GlobalShadows=true
 	end
 end)
+
+label(langPage,"Ngôn ngữ",5)
+
+local languages={
+	{"🇻🇳 Tiếng Việt","vi"},
+	{"🇬🇧 English","en"},
+	{"🇹🇭 ภาษาไทย","th"},
+	{"🇨🇳 中文","zh"},
+	{"🇰🇷 한국어","ko"}
+}
+
+local translations={
+	vi={"ESP","Fly","FixLag","Ngôn ngữ","Box người chơi : ","Bật Fly : ","Tối ưu máy : "},
+	en={"ESP","Fly","FixLag","Language","Player Box : ","Enable Fly : ","Optimization : "},
+	th={"ESP","บิน","ลดแลค","ภาษา","กรอบผู้เล่น : ","เปิดบิน : ","เพิ่มประสิทธิภาพ : "},
+	zh={"ESP","飞行","优化","语言","玩家方框 : ","开启飞行 : ","性能优化 : "},
+	ko={"ESP","비행","최적화","언어","플레이어 박스 : ","비행 활성화 : ","최적화 : "}
+}
+
+local y=55
+
+for _,v in ipairs(languages) do
+	local b=button(langPage,v[1],y)
+	y+=72
+
+	b.MouseButton1Click:Connect(function()
+		local d=translations[v[2]]
+
+		espTab.Text=d[1]
+		flyTab.Text=d[2]
+		lagTab.Text=d[3]
+		langTab.Text=d[4]
+
+		espBtn.Text=d[5]..(espOn and "ON" or "OFF")
+		flyBtn.Text=d[6]..(flyOn and "ON" or "OFF")
+		lagBtn.Text=d[7]..(lagOn and "ON" or "OFF")
+
+		title.Text="Tnh-VN"
+	end)
+end
 
 Players.PlayerAdded:Connect(function(p)
 	p.CharacterAdded:Connect(function()
 		task.wait(.5)
 		updateESP()
-		if rayOn then updateLines() end
 	end)
 end)
 
